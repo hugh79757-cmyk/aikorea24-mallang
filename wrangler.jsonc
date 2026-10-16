@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "aikorea24-mallang",
+  "compatibility_date": "2026-10-17",
+  // 정적 파일 서빙 — index.html / og.png / favicon.png
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page"
+  },
+  // aikorea24.kr zone으로 커스텀 도메인 바인딩 (Stylefactory9ai@gmail.com 계정 7eb1b8cd…)
+  "routes": [
+    { "pattern": "mallang.aikorea24.kr", "custom_domain": true }
+  ]
+}

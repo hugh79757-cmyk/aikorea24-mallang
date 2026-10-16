@@ -1,0 +1,898 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>말랑 — 38억 년 진화 일지</title>
+<meta name="description" content="38억 년 동안 하나의 계통을 이끄는 진화 시뮬레이션. 멸종은 게임 오버가 아니라 새로운 종으로의 분기입니다.">
+<meta property="og:title" content="말랑 — 38억 년 진화 일지">
+<meta property="og:description" content="38억 년 동안 하나의 계통을 이끄는 진화 시뮬레이션. 멸종은 게임 오버가 아니라 새로운 종으로의 분기입니다.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://mallang.aikorea24.kr/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="apple-touch-icon" href="/favicon.png">
+<meta name="theme-color" content="#B8E6D9">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='34' r='22' fill='%23B8E6D9'/%3E%3Ccircle cx='24' cy='31' r='4' fill='%23334'/%3E%3Ccircle cx='40' cy='31' r='4' fill='%23334'/%3E%3Cpath d='M24 42q8 7 16 0' stroke='%23334' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='15' cy='38' r='4' fill='%23FFD8C2'/%3E%3Ccircle cx='49' cy='38' r='4' fill='%23FFD8C2'/%3E%3C/svg%3E">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum:wght@400;700&family=Jua&display=swap');
+:root{
+  --mint:#B8E6D9; --peach:#FFD8C2; --lav:#DCC9F2; --butter:#FFF2B8;
+  --baby:#C7E4F5; --rose:#FBD0DC; --ink:#2B3A4A; --ink2:#5A6B7C;
+  --paper:#FFFDF9; --line:#D8E4E0; --ok:#4FB98C; --warn:#E8A33D; --bad:#E8746B;
+  --shadow:0 10px 30px rgba(43,58,74,.10);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;color:var(--ink);font-family:'Gowun Dodum','Noto Sans KR',system-ui,sans-serif;
+  background:linear-gradient(170deg,#EAF7F2 0%,#F6F0FB 45%,#FFF6EE 100%);
+  background-attachment:fixed;min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.big{font-family:'Jua',system-ui,sans-serif;font-weight:400;letter-spacing:-.01em}
+button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:none}
+button:focus-visible{outline:3px solid #7FB8E8;outline-offset:3px;border-radius:12px}
+.shell{width:min(1180px,100%);margin:auto;padding:clamp(14px,3vw,30px)}
+
+/* ── 진행 바 ── */
+.progbar{position:sticky;top:0;z-index:30;background:rgba(255,253,249,.88);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);padding:10px 0;margin-bottom:16px}
+.progwrap{width:min(1180px,100%);margin:auto;padding:0 clamp(14px,3vw,30px);display:flex;align-items:center;gap:12px}
+.species{display:flex;align-items:center;gap:8px;font-family:'Jua';font-size:15px;white-space:nowrap}
+.speciesdot{width:10px;height:10px;border-radius:50%;background:var(--mint);flex:none}
+.dots{flex:1;display:flex;gap:3px;align-items:center}
+.dot{flex:1;height:7px;border-radius:99px;background:#E3EDE9;position:relative;overflow:hidden}
+.dot.done{background:var(--mint)}
+.dot.mass::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#FFD8C2,#FBD0DC);opacity:.55}
+.dot.now{box-shadow:0 0 0 2px var(--ink) inset}
+.failbadge{font-size:12px;color:var(--ink2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.failbadge b{color:var(--bad)}
+
+/* ── 레이아웃 ── */
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.75fr);gap:18px;align-items:start}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:clamp(18px,3vw,30px)}
+.side{display:grid;gap:14px;position:sticky;top:64px}
+
+/* ── 에포크 카드 ── */
+.age{font-size:12px;color:var(--ink2);letter-spacing:.06em;margin:0 0 6px}
+.epochtitle{font-size:clamp(22px,3.4vw,34px);line-height:1.22;margin:0 0 12px}
+.epochtext{font-size:15px;line-height:1.8;color:var(--ink2);margin:0 0 16px}
+.crisis{background:#FFF3EC;border:1px solid #FFE0CE;border-radius:14px;padding:14px 16px;margin-bottom:18px}
+.crisistag{display:inline-block;font-size:10px;letter-spacing:.1em;color:#C4694A;background:#FFE8DC;
+  padding:3px 9px;border-radius:99px;margin-bottom:7px}
+.crisistitle{font-family:'Jua';font-size:16px;margin:0 0 5px}
+.crisisdesc{font-size:13px;color:var(--ink2);line-height:1.65;margin:0}
+
+/* 위험축 배지 */
+.threatbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:16px;font-size:11px;color:var(--ink2)}
+.threatbar b{font-weight:400}
+.threattag{background:#F0F4F8;border:1px solid var(--line);border-radius:99px;padding:3px 9px}
+.threattag.hi{background:#FFF0EC;border-color:#FFD5C4;color:#B85C3C}
+
+/* ── 선택지 ── */
+.prompt{font-family:'Jua';font-size:15px;margin:0 0 12px}
+.choices{display:grid;gap:10px}
+.choice{width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:16px;
+  padding:14px 16px;display:grid;grid-template-columns:26px 1fr auto;gap:12px;align-items:start;
+  transition:transform .14s ease,border-color .14s,box-shadow .14s;box-shadow:0 2px 0 rgba(43,58,74,.04)}
+.choice:hover{transform:translateY(-2px);border-color:var(--mint);box-shadow:0 8px 20px rgba(43,58,74,.10)}
+.choice:active{transform:translateY(0)}
+.choice:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.cnum{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-family:'Jua';font-size:12px;
+  background:#F0F4F8;color:var(--ink2);margin-top:2px}
+.cmain strong{display:block;font-family:'Jua';font-size:16px;margin-bottom:4px}
+.cmain span{font-size:13px;color:var(--ink2);line-height:1.6}
+.deltas{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;max-width:132px}
+.delta{font-size:11px;padding:4px 7px;border-radius:8px;background:#E8F6F0;color:#2E7D5B;white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.delta.minus{background:#FDECEA;color:#B24A42}
+.delta.zero{background:#F0F2F4;color:#8A97A5}
+
+/* ── 스탯 ── */
+.statrow{display:grid;grid-template-columns:44px 1fr 34px;gap:9px;align-items:center;margin-bottom:9px}
+.statrow label{font-size:12px;color:var(--ink2)}
+.statrow .num{font-size:12px;text-align:right;color:var(--ink2);font-variant-numeric:tabular-nums}
+.bar{height:10px;background:#EDF2F0;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;transition:width .5s cubic-bezier(.3,1.2,.5,1)}
+.bar i.might{background:linear-gradient(90deg,#FFD8C2,#F0A98A)}
+.bar i.agile{background:linear-gradient(90deg,#C7E4F5,#7FB8E8)}
+.bar i.vital{background:linear-gradient(90deg,#B8E6D9,#5FC0A0)}
+.bar i.wise{background:linear-gradient(90deg,#DCC9F2,#A88BDD)}
+.upflash{animation:flashUp .5s ease}
+.downflash{animation:flashDown .5s ease}
+@keyframes flashUp{0%,100%{background:var(--mint)}50%{background:#8FE0C0}}
+@keyframes flashDown{0%,100%{background:var(--mint)}50%{background:#F5A9A0}}
+
+/* ── 블롭 ── */
+.blobstage{display:grid;place-items:center;padding:12px 0 4px;position:relative}
+.blobstage svg{width:min(220px,52vw);height:auto;overflow:visible}
+.blobbody{transform-origin:center;animation:breathe 3s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scaleY(1) scaleX(1)}50%{transform:scaleY(1.045) scaleX(.975)}}
+.blink{animation:blink 7s infinite}
+@keyframes blink{0%,95%,100%{ry:5}97%{ry:.6}}
+.spark{opacity:0}
+.spark.on{animation:sparkPop .7s ease forwards}
+@keyframes sparkPop{0%{opacity:0;transform:scale(.3)}40%{opacity:1;transform:scale(1.25)}100%{opacity:0;transform:scale(1.6)}}
+.speclabel{text-align:center;font-family:'Jua';font-size:14px;color:var(--ink2);margin-top:2px}
+
+/* ── 계통수 ── */
+.tree{position:relative;padding-left:14px;max-height:260px;overflow-y:auto}
+.tree::before{content:'';position:absolute;left:5px;top:10px;bottom:10px;width:2px;background:var(--line);border-radius:2px}
+.tnode{position:relative;padding:0 0 12px 16px}
+.tnode::before{content:'';position:absolute;left:-13px;top:5px;width:9px;height:9px;border-radius:50%;
+  background:var(--paper);border:2px solid var(--line)}
+.tnode.now::before{background:var(--mint);border-color:var(--mint);transform:scale(1.25)}
+.tnode.fail::before{background:#FDECEA;border-color:var(--bad)}
+.tnode small{font-size:10px;color:var(--ink2);display:block;letter-spacing:.03em}
+.tnode b{font-size:12.5px;font-weight:400;font-family:'Jua'}
+
+/* ── 평행세계 ── */
+.par{font-size:12px;line-height:1.6;color:var(--ink2);background:#F8F5FF;border:1px solid #E7DFF7;
+  border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.par b{font-family:'Jua';color:#7A5BA8;font-weight:400;display:block;margin-bottom:3px}
+.empty{font-size:12px;color:#9AA6B2;padding:8px 0}
+
+/* ── 오버레이 ── */
+.overlay{position:fixed;inset:0;background:rgba(43,58,74,.55);backdrop-filter:blur(6px);z-index:50;
+  display:grid;place-items:center;padding:18px;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.show{opacity:1;pointer-events:auto}
+.dialog{background:var(--paper);border-radius:24px;padding:clamp(22px,4vw,38px);width:min(680px,100%);
+  max-height:86vh;overflow-y:auto;box-shadow:0 24px 70px rgba(43,58,74,.3);transform:translateY(14px) scale(.98);
+  transition:transform .25s}
+.overlay.show .dialog{transform:none}
+.dialog h2{font-size:clamp(20px,3vw,28px);margin:0 0 8px}
+.dialog .sub{font-size:13px;color:var(--ink2);line-height:1.75;margin:0 0 18px}
+.btnrow{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}
+.btn{background:var(--ink);color:#fff;border-radius:14px;padding:12px 20px;font-family:'Jua';font-size:15px;
+  transition:transform .12s}
+.btn:hover{transform:translateY(-2px)}
+.btn.alt{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+.btn.skip{background:#F0F2F4;color:var(--ink2)}
+.btn.tiny{padding:8px 14px;font-size:13px}
+
+/* ── 엔딩 ── */
+.endingtag{font-size:11px;letter-spacing:.12em;color:var(--ink2);margin:0 0 8px}
+.endingtitle{font-size:clamp(26px,4.5vw,44px);line-height:1.15;margin:0 0 12px}
+.endingsum{font-size:15px;line-height:1.85;color:var(--ink2);margin:0 0 20px}
+.saga{background:linear-gradient(135deg,#FFF6EE,#F6F0FB);border-radius:16px;padding:18px 20px;
+  font-family:'Jua';font-size:17px;line-height:1.6;margin:0 0 20px;border:1px solid #F0E6F5}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px;margin-bottom:22px}
+.gcell{background:#F7FAF9;border:1px solid var(--line);border-radius:12px;padding:11px 13px}
+.gcell span{display:block;font-size:11px;color:var(--ink2);margin-bottom:3px}
+.gcell b{font-family:'Jua';font-weight:400;font-size:15px}
+.sectitle{font-family:'Jua';font-size:16px;margin:24px 0 10px}
+.logline{display:grid;grid-template-columns:78px 1fr;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:12.5px}
+.logline time{color:var(--ink2);font-size:11px;padding-top:2px}
+.logline.bad{color:#B24A42}
+
+/* ── 토스트 ── */
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,18px);background:var(--ink);color:#fff;
+  padding:11px 18px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:.22s;z-index:60}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ── 인트로 ── */
+#intro{position:fixed;inset:0;background:linear-gradient(170deg,#EAF7F2,#F6F0FB 50%,#FFF6EE);z-index:70;
+  display:grid;place-items:center;padding:20px;overflow-y:auto}
+#intro.hide{display:none}
+.introcard{max-width:620px;text-align:center}
+.introcard h1{font-size:clamp(34px,7vw,60px);line-height:1.06;margin:0 0 14px}
+.introcard .tag{font-size:12px;letter-spacing:.16em;color:var(--ink2);margin:0 0 20px}
+.introcard p{font-size:15px;line-height:1.85;color:var(--ink2);margin:0 0 22px}
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:26px;text-align:left}
+.rule{background:rgba(255,255,255,.75);border:1px solid var(--line);border-radius:14px;padding:13px}
+.rule b{display:block;font-family:'Jua';font-weight:400;font-size:13px;margin-bottom:4px}
+.rule span{font-size:11.5px;color:var(--ink2);line-height:1.5}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static}
+  .blobstage svg{width:min(170px,42vw)}
+}
+@media(max-width:560px){
+  .shell{padding:12px}
+  .card{border-radius:16px;padding:18px 15px}
+  .choice{grid-template-columns:24px 1fr;padding:13px}
+  .deltas{grid-column:2;justify-content:flex-start;max-width:none;margin-top:2px}
+  .rules{grid-template-columns:1fr}
+  .species{font-size:13px}
+  .failbadge{font-size:11px}
+  .tree{max-height:190px}
+  .logline{grid-template-columns:64px 1fr}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="intro">
+  <div class="introcard">
+    <p class="tag">38억 년 · 하나의 계통</p>
+    <h1>말랑</h1>
+    <p>당신은 아직 종이 아닙니다. 38억 년 동안 <b>하나의 계통</b>을 이끌게 됩니다.<br>
+    위기를 넘길 때마다 형질 하나를 선택하세요. 얻는 것이 있다면 반드시 잃는 것도 있습니다.<br>
+    그리고 멸종은 — 게임 오버가 아닙니다. <b>계통이 갈라져 새로운 종이 됩니다.</b></p>
+    <div class="rules">
+      <div class="rule"><b>14 시대</b><span>단세포에서 인류까지, 대멸종 5회</span></div>
+      <div class="rule"><b>4 형질</b><span>강인 · 민첩 · 활력 · 지혜</span></div>
+      <div class="rule"><b>분기</b><span>버린 선택은 평행세계로 갑니다</span></div>
+    </div>
+    <button class="btn" id="startBtn">첫 번째 선택</button>
+  </div>
+</div>
+
+<div class="progbar">
+  <div class="progwrap">
+    <span class="species"><i class="speciesdot"></i><span id="spName">원시종 말랑이</span></span>
+    <span class="dots" id="dots"></span>
+    <span class="failbadge" id="failBadge">희미해진 계통 <b>0</b>/3</span>
+  </div>
+</div>
+
+<div class="shell">
+  <div class="layout" id="layout">
+    <section class="card" id="mainCard">
+      <div class="blobstage">
+        <svg id="blob" viewBox="0 0 200 200" aria-label="진화 중인 말랑"></svg>
+      </div>
+      <p class="speclabel" id="spLabel">원시종 말랑이</p>
+      <p class="age" id="age"></p>
+      <h2 class="epochtitle" id="epTitle"></h2>
+      <p class="epochtext" id="epText"></p>
+      <div class="crisis">
+        <span class="crisistag" id="crisisTag">ENVIRONMENTAL PRESSURE</span>
+        <p class="crisistitle" id="crisisTitle"></p>
+        <p class="crisisdesc" id="crisisDesc"></p>
+      </div>
+      <div class="threatbar" id="threatbar"></div>
+      <p class="prompt">어떤 형질을 다음 세대로 넘기시겠습니까?</p>
+      <div class="choices" id="choices"></div>
+    </section>
+
+    <aside class="side">
+      <section class="card">
+        <p class="age" style="margin-bottom:12px">현재 형질</p>
+        <div id="stats"></div>
+      </section>
+      <section class="card">
+        <p class="age" style="margin-bottom:12px">계통수</p>
+        <div class="tree" id="tree"></div>
+      </section>
+      <section class="card">
+        <p class="age" style="margin-bottom:12px">평행세계 <span id="parCount" style="opacity:.6"></span></p>
+        <div id="parallel"></div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"><div class="dialog" id="dialog" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   DATA — scripts/data.mjs 와 동일 (밸런스 검증 통과본)
+   ══════════════════════════════════════════════════════════════ */
+const K=['might','agile','vital','wise'];
+const LABEL={might:'강인',agile:'민첩',vital:'활력',wise:'지혜'};
+const INIT={might:55,agile:48,vital:52,wise:10};
+const ATTRITION=2, RESCUE_GRACE=1, RESCUE_HEAL=0.5, FAIL_MAX=3;
+const RESCUES=[
+ {id:'r1',name:'굳은 껍질로 버틴다',desc:'강인 18을 영구히 잃습니다. 단단함은 남습니다.',deltas:{might:-18}},
+ {id:'r2',name:'번식을 줄여 산다',desc:'활력 16을 영구히 잃습니다. 개체 수는 느리게 회복됩니다.',deltas:{vital:-16}},
+ {id:'r3',name:'배움을 태운다',desc:'지혜 14를 잃고 민첩 4를 되찾습니다.',deltas:{wise:-14,agile:4}},
+];
+const EPOCHS=[
+  {
+    id: 1, age: '38억 년 전', mark: 'ORIGIN · 3.8 BYA', mass: false,
+    title: '막이 생기자, 안과 밖이 갈렸다',
+    text: '뜨거운 바다의 유기 분자 사이에서 우연히 자신을 복제하는 막 하나가 생겼습니다. 아직 눈도, 입도, 이름도 없습니다.',
+    crisis: '열수구의 급격한 온도 변화',
+    detail: '영양분은 풍부하지만 수온과 산도가 수시로 뒤집힙니다.',
+    w: { might: 0.38, agile: 0.32, vital: 0.24, wise: 0.06 }, threshold: 37,
+    choices: [
+      { title: '두꺼운 막', desc: '외부 충격을 견디는 대신 물질 교환이 느려집니다.', deltas: { might: 16, agile: -4, vital: -6, wise: 2 }, frag: '갑', flavors: ['단단한 바깥이 곧 살아남음입니다.', '흘러내림보다 붙어 있음입니다.'] },
+      { title: '느슨한 막', desc: '환경 변화를 빠르게 받아들이지만 손상에 취약합니다.', deltas: { might: -10, agile: 15, vital: 6, wise: 3 }, frag: '물', flavors: ['변화에 빠른 것은 살아남는 길입니다.', '흐름에 몸을 맡깁니다.'] },
+      { title: '선택적 통로', desc: '필요한 분자만 통과시키는 복잡한 막을 만듭니다.', deltas: { might: -2, agile: 5, vital: -5, wise: 15 }, frag: '문', flavors: ['들여오고 내보내는 것을 구분합니다.', '문밖은 매혹이 많습니다.'] },
+    ],
+  },
+  {
+    id: 2, age: '24억 년 전', mark: 'OXYGEN · 2.4 BYA', mass: true, massName: '대산소 사건',
+    title: '산소는 독이었고, 동시에 연료였습니다',
+    text: '광합성 생물이 바다를 산소로 채웠습니다. 기존 생명 대부분에게 산소는 세포를 파괴하는 맹독입니다.',
+    crisis: '대산소 사건 — 대산화 오염',
+    detail: '산소를 피하거나, 막아내거나, 에너지로 바꿔야 합니다. 이 선택이 이후 20억 년의 지배를 결정합니다.',
+    w: { might: 0.22, agile: 0.30, vital: 0.36, wise: 0.12 }, threshold: 37,
+    choices: [
+      { title: '산소 차단층', desc: '독성을 버티지만 에너지 획득량은 크게 늘지 않습니다.', deltas: { might: 14, agile: -3, vital: -6, wise: 4 }, frag: '막' },
+      { title: '산소 호흡', desc: '위험한 산소를 막대한 에너지로 바꿉니다. 이 길은 살아남지만 경쟁자가 폭발합니다.', deltas: { might: -11, agile: 4, vital: 24, wise: 10 }, frag: '불' },
+      { title: '무산소 심해로 이동', desc: '경쟁은 줄지만 환경 변화에 고립됩니다.', deltas: { might: 6, agile: -12, vital: 8, wise: -3 }, frag: '깊' },
+    ],
+  },
+  {
+    id: 3, age: '21억 년 전', mark: 'SYMBIOSIS · 2.1 BYA', mass: false,
+    title: '다른 생물을 삼키고 사는 법',
+    text: '어떤 세포가 다른 세포를 삼키고 소화하지 않았습니다. 작은 쪽은 안전하고 큰 쪽은 에너지를 얻습니다. 이 공생이 진핵세포의 기원입니다.',
+    crisis: '공생의 딜레마 — 삼킨 자와 삼켜진 자의 신뢰',
+    detail: '집에서 나가고 싶어하는 쪽이 한 마리씩 늘어납니다. 어느 쪽이 지배할지 정해야 합니다.',
+    w: { might: 0.22, agile: 0.24, vital: 0.30, wise: 0.24 }, threshold: 40,
+    choices: [
+      { title: '완전한 공생', desc: '서로의 약점을 보완합니다. 대신 몸이 비대해져 민첩함을 잃습니다.', deltas: { might: 8, agile: -8, vital: 18, wise: 12 }, frag: '공' },
+      { title: '제어 유지', desc: '큰 쪽이 명령권을 쥡니다. 효율적이지만 작은 쪽의 반발을 샙니다.', deltas: { might: 16, agile: 8, vital: 4, wise: -8 }, frag: '주' },
+      { title: '분리 독립', desc: '공생의 위험을 버리고 혼자 살아갑니다. 둘 다 더 약해집니다.', deltas: { might: 8, agile: 12, vital: -12, wise: 4 }, frag: '독' },
+    ],
+  },
+  {
+    id: 4, age: '12억 년 전', mark: 'MULTICELL · 1.2 BYA', mass: false,
+    title: '하나가 다자가 되었다',
+    text: '세포들이 붙고, 각자 일을 나누고, 몸 전체가 하나처럼 움직이려 합니다. 이때 처음으로 몸의 설계도가 생깁니다.',
+    crisis: '다자 세포의 첫 분화 — 서로 다른 일을 하는 법',
+    detail: '분화는 효율을 부르지만, 몸이 굳으면 환경 변화에 몸을 맞출 수 없습니다.',
+    w: { might: 0.24, agile: 0.26, vital: 0.24, wise: 0.26 }, threshold: 41,
+    choices: [
+      { title: '강한 결합', desc: '세포들이 단단히 묶여 몸이 안정적입니다. 대신 굳은 몸은 유연하지 못합니다.', deltas: { might: 18, agile: -8, vital: 8, wise: 6 }, frag: '속' },
+      { title: '느슨한 결합', desc: '언제든 떨어져 나갈 수 있는 느슨한 연결. 변화에 기민하지만 분산을 못 막습니다.', deltas: { might: -10, agile: 16, vital: 4, wise: 8 }, frag: '풀' },
+      { title: '분업 정교화', desc: '각 세포가 자기 자리만 알도록 만듭니다. 지혜가 자랍니다.', deltas: { might: 4, agile: 6, vital: -8, wise: 20 }, frag: '칸' },
+    ],
+  },
+  {
+    id: 5, age: '7.2억 년 전', mark: 'SNOWBALL · 720 MYA', mass: true, massName: '눈덩이 지구',
+    title: '바다가 얼음 아래로 사라졌다',
+    text: '행성 대부분이 얼음으로 덮였습니다. 빛은 희미하고 먹이는 드물며, 계절은 수백만 년처럼 깁니다.',
+    crisis: '눈덩이 지구 — 전 지구의 평균 기온 급락',
+    detail: '오래 버티는 효율과 변화에 대응하는 힘이 동시에 시험받습니다. 둘 다 없으면 멸종합니다.',
+    w: { might: 0.36, agile: 0.28, vital: 0.26, wise: 0.10 }, threshold: 47,
+    choices: [
+      { title: '휴면 포자', desc: '활동을 멈추고 수천 년을 버티지만 진화 속도가 느려집니다.', deltas: { might: 18, agile: -8, vital: 10, wise: -5 }, frag: '잠' },
+      { title: '공생 군체', desc: '서로 다른 세포가 자원을 나눠 써 효율이 배가됩니다. 다만 군집이 크면 배신에 취약합니다.', deltas: { might: -6, agile: 10, vital: 12, wise: 14 }, frag: '군' },
+      { title: '빙하 틈새 이동', desc: '얼지 않은 틈을 계속 찾아다니며 에너지를 소모합니다.', deltas: { might: -7, agile: 19, vital: -9, wise: 6 }, frag: '이' },
+    ],
+  },
+  {
+    id: 6, age: '5.41억 년 전', mark: 'CAMBRIAN · 541 MYA', mass: false,
+    title: '세상이 갑자기 눈과 이빨을 갖기 시작했습니다',
+    text: '포식과 도피의 군비 경쟁이 폭발합니다. 가만히 있던 생명에게 다른 생명은 처음으로 환경이자 적이 됩니다.',
+    crisis: '캄브리아 대폭발 — 먹고, 보거나, 숨지 못하면 상대가 당신의 에너지입니다',
+    detail: '이 진화는 가장 자주 오판받는 시기입니다. 실제로는 동시 다발이었고, 그 복잡한 무기가 오히려 얼마나 많은 종을 죽일지가 갈립니다.',
+    w: { might: 0.20, agile: 0.30, vital: 0.20, wise: 0.30 }, threshold: 49,
+    choices: [
+      { title: '외골격', desc: '단단한 방어를 얻지만 성장할 때마다 취약해집니다.', deltas: { might: 19, agile: -7, vital: -7, wise: 8 }, frag: '갑' },
+      { title: '감각 기관', desc: '위험을 먼저 감지하지만 신경계를 유지할 비용이 큽니다.', deltas: { might: -4, agile: 13, vital: -10, wise: 19 }, frag: '안' },
+      { title: '매복 포식', desc: '적을 먹이로 바꾸지만 먹잇감 감소에 민감해집니다.', deltas: { might: -6, agile: 5, vital: 17, wise: 10 }, frag: '턱' },
+    ],
+  },
+  {
+    id: 7, age: '3.75억 년 전', mark: 'LAND · 375 MYA', mass: false,
+    title: '물이 줄자, 땅이 선택지가 되었습니다',
+    text: '얕은 늪이 마르고 바다의 산소가 줄어듭니다. 축축한 육지는 위험하지만 비어 있는 생태적 공간입니다.',
+    crisis: '데본기 후기의 저산소화 — 마른 땅으로의 도약',
+    detail: '중력을 이기려면 물기를 잃어야 합니다. 육지 정착은 대개 첫 번째 시도에서 실패했습니다.',
+    w: { might: 0.28, agile: 0.36, vital: 0.18, wise: 0.18 }, threshold: 52,
+    choices: [
+      { title: '원시 폐', desc: '공기에서 산소를 얻어 산소爭奪에서 자유로워집니다. 다만 수중 호흡 효율이 떨어집니다.', deltas: { might: -3, agile: 14, vital: 10, wise: 12 }, frag: '숨' },
+      { title: '튼튼한 지느러미', desc: '얕은 물과 진흙을 건너지만 빠른 유영을 잃습니다.', deltas: { might: 10, agile: 9, vital: -8, wise: 8 }, frag: '지' },
+      { title: '심해 정착', desc: '변화를 피하고 안정성을 택하지만 영역이 좁아집니다.', deltas: { might: 12, agile: -13, vital: 6, wise: -2 }, frag: '해' },
+    ],
+  },
+  {
+    id: 8, age: '2.52억 년 전', mark: 'THE DYING · 252 MYA', mass: true, massName: '페름기 대멸종',
+    title: '숲이 무너지고 바다가 숨을 멈췄습니다',
+    text: '화산 활동이 기온을 끌어올리고 바다는 산성화됩니다. 지구 생명의 가장 큰 소거가 시작됩니다.',
+    crisis: '페름기 말기 소거 — 바다의 산성화',
+    detail: '단 하나의 능력보다 균형 잡힌 생존 전략이 필요한 시기입니다. 이 위기를 넘기면 지구의 바다는 돌다가 됩니다.',
+    w: { might: 0.32, agile: 0.30, vital: 0.24, wise: 0.14 }, threshold: 53,
+    choices: [
+      { title: '소형화', desc: '적은 먹이로 버티지만 경쟁과 포식에 약해집니다.', deltas: { might: -8, agile: 10, vital: 20, wise: -8 }, frag: '소' },
+      { title: '잡식성', desc: '무엇이든 먹지만 어떤 먹이에도 최고 효율은 아닙니다.', deltas: { might: 4, agile: 18, vital: -5, wise: 2 }, frag: '잡' },
+      { title: '굴 생활', desc: '열과 독성 대기를 피하지만 이동과 시야를 잃습니다.', deltas: { might: 17, agile: -8, vital: 6, wise: -4 }, frag: '굴' },
+    ],
+  },
+  {
+    id: 9, age: '2.01억 년 전', mark: 'PANGAEA · 201 MYA', mass: false,
+    title: '지구를 하나의 덩어리로 꿰맨 날',
+    text: '판게아가 완성되고, 내륙의 대부분이 한 덩어리로 합쳐집니다. 바다가 얕아지고 습지가 사라집니다.',
+    crisis: '판게아 완성 — 삼각대륙의 마름',
+    detail: '육지의 연결은 종을 이동시키기도 하지만, 내륙의 한가운데는 마르고 타 버려 서식지를 잃기도 합니다.',
+    w: { might: 0.28, agile: 0.32, vital: 0.22, wise: 0.18 }, threshold: 57,
+    choices: [
+      { title: '안쪽으로', desc: '내륙으로 들어가 안정적으로 버티지만 경쟁이 치열합니다.', deltas: { might: 14, agile: 4, vital: -4, wise: 8 }, frag: '안' },
+      { title: '가장자리로', desc: '경계의 생태계에 몸을 둡니다. 변화가 많지만 적어도 한 곳은 항상 남습니다.', deltas: { might: -6, agile: 18, vital: 6, wise: 6 }, frag: '경' },
+      { title: '해안 습지', desc: '안과 바다의 경계에서 가장 많은 에너지를 얻습니다. 다만 삼각대륙의 마름에 취약합니다.', deltas: { might: 6, agile: 8, vital: 18, wise: -6 }, frag: '연' },
+    ],
+  },
+  {
+    id: 10, age: '6600만 년 전', mark: 'IMPACT · 66 MYA', mass: true, massName: '백악기–팔레오기 충돌',
+    title: '하늘이 불타고, 긴 밤이 내려왔다',
+    text: '충돌 뒤 먼지가 햇빛을 가립니다. 거대한 몸과 정교한 생태 관계가 한순간에 부채가 됩니다.',
+    crisis: 'K-Pg 충돌 — 먹이망 단절',
+    detail: '먹이를 비축해 충격을 수년을 견딜 전략이 필요합니다. 이 한 번이 이후 지구의 지배종을 결정합니다.',
+    w: { might: 0.30, agile: 0.34, vital: 0.28, wise: 0.08 }, threshold: 57,
+    choices: [
+      { title: '야행성', desc: '어둠을 활동 시간으로 삼지만 시각과 체온 유지 비용이 늘어납니다.', deltas: { might: 2, agile: 14, vital: -8, wise: 9 }, frag: '야' },
+      { title: '씨앗 저장', desc: '먹이를 비축해 충격을 버티지만 서식지 이동이 느려집니다.', deltas: { might: 13, agile: -6, vital: 10, wise: 1 }, frag: '저' },
+      { title: '빠른 번식', desc: '손실을 수로 메우지만 개체당 생존력은 낮아집니다.', deltas: { might: -12, agile: 9, vital: 18, wise: -5 }, frag: '다' },
+    ],
+  },
+  {
+    id: 11, age: '3000만 년 전', mark: 'MAMMAL · 30 MYA', mass: false,
+    title: '작은 것들의 밤이 지나갔다',
+    text: '거대한 먹이망이 무너진 빈자리에, 작고 numerous한 것들이 밤을 피해 번성하기 시작합니다.',
+    crisis: '빈 자리의 시대 — 종 분화 폭발',
+    detail: '큰 몸을 잃은 대신,社群과 학습이 새로운 무기로 올라섭니다.',
+    w: { might: 0.22, agile: 0.26, vital: 0.24, wise: 0.28 }, threshold: 62,
+    choices: [
+      { title: '무리 생활', desc: '함께 행동하며 서로의 몸을 아끼는 법을 배웁니다. 대신 무리의 다툼이 배를 채웁니다.', deltas: { might: -6, agile: 10, vital: 4, wise: 18 }, frag: '무리' },
+      { title: '야행성 지배', desc: '밤을 장악하며 낮의 냉각 비용을 아낍니다. 대신 낮의 시력을 잃고 몸이 작아집니다.', deltas: { might: -4, agile: 12, vital: 6, wise: 6 }, frag: '밤' },
+      { title: '개별 방어', desc: '각자 살아남는 길을 찾습니다. 분산은되지만 함께가 아닙니다.', deltas: { might: 12, agile: -8, vital: 8, wise: 4 }, frag: '개' },
+    ],
+  },
+  {
+    id: 12, age: '700만 년 전', mark: 'MIOCENE · 7 MYA', mass: false,
+    title: '서서히 울퉁불퉁해진 지면',
+    text: '판이 움직이며 산과 평야가 교대합니다. 평야가 늘고, 그 위에서 두 발로 선 자리가 생깁니다.',
+    crisis: '초원 팽창 — 두 발로 서고 싶은 유혹',
+    detail: '손을 자유롭게 쓸 수 있지만, 그만큼 방어와 순발력을 잃습니다.',
+    w: { might: 0.20, agile: 0.28, vital: 0.20, wise: 0.32 }, threshold: 63,
+    choices: [
+      { title: '손을 자유롭게', desc: '두 손으로 새로운 에너지원을 만듭니다. 대신 발로 달리는 능력은 약해집니다.', deltas: { might: -8, agile: 10, vital: 6, wise: 20 }, frag: '손' },
+      { title: '완전 직립', desc: '두 발로 완전히 서서 하늘을 봅니다. 대신 달리는 속도를 잃습니다.', deltas: { might: 6, agile: -12, vital: 10, wise: 14 }, frag: '립' },
+      { title: '사족 유지', desc: '네 발을 유지해 효율적으로 달립니다. 대신 진화 가능성은 좁아집니다.', deltas: { might: 12, agile: 12, vital: 14, wise: -12 }, frag: '족' },
+    ],
+  },
+  {
+    id: 13, age: '260만 년 전', mark: 'ICE AGE · 2.6 MYA', mass: false,
+    title: '기후가 흔들릴 때마다 길이 달라졌습니다',
+    text: '빙하가 전진하고 후퇴합니다. 이제 환경은 빠르게 바뀌며, 혼자 아는 것보다 함께 기억하는 것이 강해집니다.',
+    crisis: '반복되는 빙기와 간빙기',
+    detail: '마지막 분기는 몸의 진화만이 아니라 행동과 관계의 진화입니다.',
+    w: { might: 0.22, agile: 0.32, vital: 0.16, wise: 0.30 }, threshold: 66,
+    choices: [
+      { title: '사회적 학습', desc: '경험을 무리와 공유합니다. 대신 몸이 작아지고 적응이 늦어집니다.', deltas: { might: -4, agile: 10, vital: 2, wise: 18 }, frag: '공유' },
+      { title: '장거리 이동', desc: '기후대를 따라 이동하며, 이동 자체가 이 계통의 생존 방식이 됩니다.', deltas: { might: -4, agile: 14, vital: 12, wise: 5 }, frag: '이주' },
+      { title: '두꺼운 보온층', desc: '추위를 견디며 에너지 소모를 줄입니다. 대신 온난기에는 과열됩니다.', deltas: { might: 18, agile: -12, vital: 8, wise: 2 }, frag: '한' },
+    ],
+  },
+  {
+    id: 14, age: '지금', mark: 'NOW · TODAY', mass: true, massName: '인류 시대의 대멸종',
+    title: '여기로서, 마지막 질문',
+    text: '당신의 계통은 38억 년을 살아왔습니다. 지금, 환경은 다시 빠르게 변하고 있습니다. 이번엔 당신이 환경입니다.',
+    crisis: '지배자의 시대 — 마지막 갈림길',
+    detail: '이 선택이 38억 년의 계통을 어디까지 끌고 갈지 결정합니다. 어차피 멸종해도 분기하겠지만, 후계자가 누구인가는 중요합니다.',
+    w: { might: 0.22, agile: 0.22, vital: 0.30, wise: 0.26 }, threshold: 66,
+    choices: [
+      { title: '지혜 극대화', desc: '배움을 극대화합니다. 개체수는 줄어도 지배 계통이 될 가능성.', deltas: { might: -6, agile: 4, vital: -8, wise: 26 }, frag: '지' },
+      { title: '균형 유지', desc: '네 축을 고르게 지킵니다. 특별히 뛰지 않지만 어디에도 뒤처지지 않습니다. 대신 어떤 축도 극단으로 치닿지 못합니다.', deltas: { might: 6, agile: -4, vital: 6, wise: 6 }, frag: '균' },
+      { title: '생존 극대화', desc: '단순히 오래 사는 것에 집중합니다. 아름다움은 남지 않을 수 있습니다.', deltas: { might: 14, agile: 8, vital: 14, wise: -16 }, frag: '존' },
+    ],
+  },
+];
+const RADIATIONS={
+  2: [
+    { name: '차폐 방어형', desc: '불활성화 층을 두껍게 감고 산소를 피합니다.', deltas: { might: 14, vital: -6 }, parts: ['shield'], future: '산소를 외면한 그 계통은 20억 년간 바다가 아니라 진공에 가깝게 남았을 것입니다. 지금도 산소 앞에서만 살고 있습니다.' },
+    { name: '호흡 기관형', desc: '산소를 에너지로 전환하는 거대한 기관을 발달시켰습니다.', deltas: { vital: 24, wise: 10 }, parts: ['flame'], future: '그 계통은 산소를 에너지로 삼아 마침내 가장 큰 몸을 가졌습니다. 다만 너무 커져서 작은 웅덩이에서 갇혔을지도 모릅니다.' },
+    { name: '심해 은둔형', desc: '산소가 없는 심해로 물러나 경쟁을 피했습니다.', deltas: { might: 6, vital: 8, agile: -12 }, parts: ['deep'], future: '은둔한 그 계통은 산소 지옥에서 살아남아 오늘도 무산소 수심 4km에서 혼자 계보서를 씁니다. 위로는 올라가지 않았습니다.' },
+  ],
+  5: [
+    { name: '휴면 장기형', desc: '수천 년을 잠자는 포자를 계약으로 무장했습니다.', deltas: { might: 18, vital: 10, wise: -5 }, parts: ['cloak'], future: '얼음이 녹을 때마다 몇 개체만이 깨어나 무언가를 남겼을 것입니다. 느리지만 한 번도 끊기진 않았습니다.' },
+    { name: '공생 군체형', desc: '여러 종류가 함께 사는 연합 군체를 만들었습니다.', deltas: { agile: 10, wise: 16 }, parts: ['cluster'], future: '군체형 그 계통은 배신 없는 사회를 유지했는지, 아니면 끝내 제국을 세웠는지 알 수 없습니다. 스무 개체가 하나가 되었습니다.' },
+    { name: '빙하 유영형', desc: '얼지 않은 틈을 헤치며 살아남았습니다.', deltas: { agile: 19, vital: -9 }, parts: ['fin'], future: '항상 움직인 그 계통은 눈덩이가 걷힌 뒤 자리를 옮기지 못했을 것입니다. 첫 만의的开된 바다에서 멸종했습니다.' },
+  ],
+  8: [
+    { name: '왜소 생존형', desc: '몸을 줄여 작은 틈새와 적은 먹이로 버텼습니다.', deltas: { vital: 20, agile: 10, might: -8 }, parts: ['small'], future: '작아진 그 계통은 대멸종을 온몸으로 버티고, 위대한 회복기에 값을 치를 것입니다. 작음이 진짜 무기였습니다.' },
+    { name: '잡식 방랑형', desc: '무엇이든 먹고 어디든 가는 생존 전략을 택했습니다.', deltas: { agile: 18, wise: 2, vital: -5 }, parts: ['roam'], future: '잡식성 그 계통은 한 영역에 남지 않고 지구를 두루았습니다. 진화는 느렸지만 멸종은 피했습니다.' },
+    { name: '지하 잠복형', desc: '땅 아래 그물과 동굴로 몸을 숨겼습니다.', deltas: { might: 17, agile: -8 }, parts: ['burrow'], future: '땅속에 숨은 그 계통은 지상의 모든 멸종을 보지 못했습니다. 그리고 지상 생명을 단 한 번도 몰랐습니다.' },
+  ],
+  10: [
+    { name: '밤의 지배자', desc: '충돌 이후 어둠을 지배하며 살아남았습니다.', deltas: { agile: 14, wise: 9, vital: -8 }, parts: ['nocturne'], future: '밤길 그 계통은 공포의 왕이 되었습니다. 인류가 무서워했던 것은 사실 우리가 그 계통의 후손이었다는 뜻입니다.' },
+    { name: '저장채식자', desc: '먹이를 비축하고 시간을 건너뛰었습니다.', deltas: { might: 13, vital: 10 }, parts: ['cache'], future: '비축형 그 계통은 긴 겨울을 다리처럼 넘었습니다. 화석이 아니라 살아있는 기록을 남겼습니다.' },
+    { name: '급속 번식자', desc: '수만 개체를 순식간에 만들어냈습니다.', deltas: { vital: 18, agile: 9, might: -12 }, parts: ['swarm'], future: '다산형 그 계통은 개체당으로는 약했지만, 수가 많아 멸종을 밀어냈습니다. 진짜 단위는 개체가 아니었습니다.' },
+  ],
+  14: [
+    { name: '지혜 계통', desc: '배움을 최대화한, 지금의 지배자.', deltas: { wise: 26, might: -6, vital: -8 }, parts: ['crown'], future: '만약 그때 지혜를 택했다면, 인류가 아니라 그 계통이 지금 이 자리에 서 있을 것입니다. 지구에는 사실 두 개의 지배자가 있었습니다.' },
+    { name: '균형 계통', desc: '네 축을 고르게 유지한, 안정된 후계자.', deltas: { might: 6, agile: 6, vital: 6, wise: 6 }, parts: ['ring'], future: '균형형 그 계통은 화려하지 않았습니다. 대신 멸종하지도, 지배하지도 않았습니다. 조용히 38억 년을 지켜보는 존재였습니다.' },
+    { name: '장수 생존 계통', desc: '오래 사는 것에 집중한, 조용한 계통.', deltas: { might: 14, agile: 8, vital: 14, wise: -16 }, parts: ['stone'], future: '생존 극대화형 그 계통은 아름답지 않았습니다. 그러나 이것만은 분명합니다 — 다음 멸종이 오면, 살아남는 건 이 계통입니다.' },
+  ],
+};
+const ENDINGS={
+  perfect: {
+    might: { title: '속이 단단한 말랑', summary: '38억 년간 단 한 번도 떨지 않았습니다. 당신의 계통은 몸이 단단한 쪽으로 끝까지 가졌습니다. 이게 복종이 아닙니다 — 선택이 복종이었고, 당신은 매번 그걸 골랐습니다.', saga: '나는 막으로 시작해 강인만 골랐다. 그래서 38억 년 뒤에도 여기 서 있다.' },
+    agile: { title: '달리는 말랑', summary: '바다는 당신을 쫓아왔고, 당신은 바다가 멈추기 전에 달렸습니다. 멸종을 다섯 번 만나고, 다섯 번 다른 모습으로 달려 나왔습니다.', saga: '나는 물러서지 않았다. 물러설 때마다 멸종했다. 38억 년 뒤 여기 도착했다.' },
+    vital: { title: '곁에 남는 말랑', summary: '당신은 늘 곁에 있는 쪽을 골랐습니다. 크지 않아도, 화려하지 않아도, 가장 오래 지속된 쪽을. 그게 이 계통의 무기였습니다.', saga: '나는 늘 곁에 남는 쪽을 골랐다. 그게 전부였고, 그게 전부였다.' },
+    wise: { title: '생각하는 말랑', summary: '38억 년의 끝에서, 당신의 계통은 처음으로 자신을 알게 됐습니다. 그 지혜가 멸종을 피해선 다음 세대로 갚아줄까요.', saga: '나는 배운 쪽을 골랐다. 그래서 38억 년 후, 처음으로 이 계통이 자기 손으로 다음을 고를 수 있게 되었다.' },
+  },
+  scarred: {
+    might: { title: '깎여 나간 단단함', summary: '당신의 계통은 멸종을 거쳤습니다. 다만 굴러가며 살아남는 쪽이었습니다. 상처가 이 계통의 유일한 몸틀입니다.', saga: '나는 굴러서 멸종을 넘겼다. 상처가 이 계통의 무기다.' },
+    agile: { title: '도망의 귀환자', summary: '다섯 번의 대멸종을 모두 달아났습니다. 당신의 계통은 지쳐 있지만, 멸종을 피하는 것 자체가 이 계통의 재능입니다.', saga: '나는 다섯 번 도망쳤다. 그리고 전부 돌아와 후계자를 남겼다.' },
+    vital: { title: '곁에 남은 것들', summary: '거대한 것은 모두 죽고, 당신의 계통만 작게 남았습니다. 작게 남는 데에는 이유가 있습니다.', saga: '나는 곁에 남는 쪽을 골랐다. 그게 멸종을 피하는 유일한 이유였다.' },
+    wise: { title: '배움의 잔해', summary: '멸종을 지났지만 지혜는 남겼습니다. 후배들이 그것을 다시 배웠습니다. 기억이 재생될 때마다 계통은 조금 더 똑똑해집니다.', saga: '나는 배웠고, 죽었고, 배운 걸 남겼다. 이게 계통이 지혜를 건네는 방식이다.' },
+  },
+  extinct: {
+    might: { title: '단단했으나 멸종한 말랑', summary: '당신의 계통은 38억 년을 버텼습니다. 그리고 멸종했습니다. 강함만으로는 오래 못 갑니다 — 이 계통의 유일한 교훈입니다.', saga: '나는 강했었다. 그래서 멸종했다. 강한 것과 오래가는 것은 다르다.' },
+    agile: { title: '달렸으나 멸종한 말랑', summary: '도망은 천재였지만 세상은 더 빠르게 변했습니다. 당신의 계통은 끝내 따라잡지 못했습니다. 달리는 것만으로는 살아남지 않습니다.', saga: '나는 달렸었다. 세상은 더 빨랐다. 아무것도 못 붙었다.' },
+    vital: { title: '곁에 남았으나 멸종한 말랑', summary: '곁에 남는 전략이 가장 안전하다고 했죠. 그러나 이 계통은 결국 끝까지 곁에 남지 못했습니다.', saga: '나는 곁에 남으려 했다. 그런데 곁에 남을 자리가 없었다.' },
+    wise: { title: '생각했지만 멸종한 말랑', summary: '지혜로 이 세상을 이해했는데, 이해한다고 살아남지는 않습니다. 당신의 계통은 너무 많이 알기만 했습니다.', saga: '나는 이해했다. 그런데 이해한다고 살아남진 않는다.' },
+  },
+};
+
+/* ══════════════════════════════════════════════════════════════
+   UTIL
+   ══════════════════════════════════════════════════════════════ */
+const $=id=>document.getElementById(id);
+const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+function rng(seed){let a=seed>>>0||1;return()=>{a|=0;a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}
+const healDeltas=(rd,h)=>{const o={};for(const k of K)if(rd[k])o[k]=rd[k]<0?-Math.round(Math.abs(rd[k])*(1-h)):rd[k];return o;};
+const score=(s,w)=>K.reduce((a,k)=>a+s[k]*w[k],0);
+const archeOf=s=>K.reduce((a,b)=>s[a]>=s[b]?a:b);
+const tierOf=f=>f>=FAIL_MAX?'extinct':f===0?'perfect':'scarred';
+
+/* ══════════════════════════════════════════════════════════════
+   STATE
+   ══════════════════════════════════════════════════════════════ */
+const urlSeed=new URLSearchParams(location.search).get('seed');
+let SEED=urlSeed?parseInt(urlSeed,10):(Date.now()%2147483647);
+let R=rng(SEED);
+let S;
+function newState(){
+  return{
+    i:0, stats:{...INIT}, fail:0, grace:0,
+    log:[], parallel:[], parts:[], frag:'',
+    phase:'play',           // play | rescue | radiation | ending
+    lastDelta:{}, extinctAt:null, sparks:[], pendingMass:false, radDone:null
+  };
+}
+
+/* 종명 생성: 선택 프래그먼트가 쌓임 */
+function speciesName(){
+  if(!S.frag) return '원시종 말랑이';
+  return S.frag+'말랑이';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BLOB — 파스텔 절차적 SVG
+   ══════════════════════════════════════════════════════════════ */
+const PAL={mint:'#B8E6D9',peach:'#FFD8C2',lav:'#DCC9F2',butter:'#FFF2B8',baby:'#C7E4F5',rose:'#FBD0DC'};
+const ARCHE_COLOR={might:PAL.peach,agile:PAL.baby,vital:PAL.mint,wise:PAL.lav};
+const PARTS_COLOR={
+ shield:'#C7E4F5',flame:'#FFD8C2',deep:'#DCC9F2',cloak:'#C7E4F5',cluster:'#FFF2B8',fin:'#B8E6D9',
+ small:'#FBD0DC',roam:'#FFF2B8',burrow:'#FFD8C2',nocturne:'#DCC9F2',cache:'#B8E6D9',swarm:'#FFF2B8',
+ crown:'#FFF2B8',ring:'#C7E4F5',stone:'#FBD0DC'
+};
+function renderBlob(){
+  const s=S.stats;
+  const size=58+ (s.vital-50)*0.30;                     // 활력 → 몸 부피
+  const eyeR=3.6+ (s.wise-10)*0.028;                    // 지혜 → 눈 크기
+  const spikes=Math.round(clamp((s.might-40)/16,0,4));  // 강인 → 갑각 스파이크
+  const finA=(s.agile-30)/38;                           // 민첩 → 지느러미 각도
+  const antennae=Math.round(clamp((s.wise-30)/24,0,3)); // 지혜 → 촉수
+  const bodyColor=ARCHE_COLOR[archeOf(s)];
+  const cy=112;
+
+  let svg=`<defs>
+    <radialGradient id="bg1" cx="35%" cy="30%"><stop offset="0%" stop-color="#fff" stop-opacity=".55"/><stop offset="100%" stop-color="${bodyColor}" stop-opacity="0"/></radialGradient>
+  </defs>`;
+  // 몸
+  svg+=`<ellipse class="blobbody" cx="100" cy="${cy}" rx="${size}" ry="${size*0.92}" fill="${bodyColor}"/>`;
+  svg+=`<ellipse cx="100" cy="${cy}" rx="${size}" ry="${size*0.92}" fill="url(#bg1)"/>`;
+  // 등판 갑각 (강인)
+  for(let i=0;i<spikes;i++){
+    const t=(i+1)/(spikes+1), x=100-size+t*size*2, y=cy-size*0.92;
+    svg+=`<path d="M${x-7} ${y+2} L${x} ${y-11} L${x+7} ${y+2} Z" fill="#F0C9B0"/>`;
+  }
+  // 지느러미 (민첩)
+  const fa=finA*26;
+  svg+=`<path d="M${100-size*0.85} ${cy+size*0.55} q-26 ${fa-6} -13 ${fa+14} q16 ${-fa*0.4} 22 ${-fa-8} Z" fill="#A8D8F0"/>`;
+  svg+=`<path d="M${100+size*0.85} ${cy+size*0.55} q26 ${fa-6} 13 ${fa+14} q-16 ${-fa*0.4} -22 ${-fa-8} Z" fill="#A8D8F0"/>`;
+  // 아래 지느러미 (활력)
+  svg+=`<path d="M${100-size*0.45} ${cy+size*0.9} q-14 20 4 24 q12 -6 8 -22 Z" fill="#9EDCC6"/>`;
+  // 눈
+  const ey=cy-6, ex=size*0.34;
+  svg+=`<g class="blink"><ellipse cx="${100-ex}" cy="${ey}" rx="${eyeR}" ry="${eyeR*0.86}" fill="#2B3A4A"/>
+    <ellipse cx="${100+ex}" cy="${ey}" rx="${eyeR}" ry="${eyeR*0.86}" fill="#2B3A4A"/>
+    <circle cx="${100-ex+eyeR*0.32}" cy="${ey-eyeR*0.3}" r="${eyeR*0.3}" fill="#fff"/>
+    <circle cx="${100+ex+eyeR*0.32}" cy="${ey-eyeR*0.3}" r="${eyeR*0.3}" fill="#fff"/></g>`;
+  // 볼터치
+  svg+=`<ellipse cx="${100-ex-eyeR}" cy="${ey+eyeR*1.5}" rx="${eyeR*0.75}" ry="${eyeR*0.5}" fill="#FFC2C2" opacity=".7"/>`;
+  svg+=`<ellipse cx="${100+ex+eyeR}" cy="${ey+eyeR*1.5}" rx="${eyeR*0.75}" ry="${eyeR*0.5}" fill="#FFC2C2" opacity=".7"/>`;
+  // 입
+  svg+=`<path d="M${100-eyeR} ${ey+eyeR*2.1} q${eyeR} ${eyeR*0.9} ${eyeR*2} 0" stroke="#2B3A4A" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  // 촉수 (지혜)
+  for(let i=0;i<antennae;i++){
+    const a=-70-i*26, r=size*0.9;
+    const x1=100+Math.cos(a*Math.PI/180)*r, y1=cy+Math.sin(a*Math.PI/180)*r;
+    const x2=100+Math.cos((a-10)*Math.PI/180)*(r+20), y2=cy+Math.sin((a-10)*Math.PI/180)*(r+20);
+    svg+=`<path d="M${x1} ${y1} Q${x1+4} ${y1-12} ${x2} ${y2}" stroke="#B9A6DE" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+    svg+=`<circle cx="${x2}" cy="${y2}" r="3.4" fill="#DCC9F2"/>`;
+  }
+  // 방산 파츠 (후계자 전용 장식)
+  S.parts.forEach(p=>{
+    const col=PARTS_COLOR[p]||'#FFF2B8';
+    if(p==='crown') svg+=`<path d="M76 ${cy-size*0.78} L100 ${cy-size*1.28} L124 ${cy-size*0.78} Z" fill="#FFF2B8" stroke="#E8C860" stroke-width="1.5"/>`;
+    else if(p==='ring') svg+=`<ellipse cx="100" cy="${cy+size*0.95}" rx="${size*0.72}" ry="9" fill="none" stroke="${col}" stroke-width="4"/>`;
+    else if(p==='shield') svg+=`<path d="M${100-size*0.9} ${cy-size*0.2} q${size*0.9} -20 ${size*1.8} 0 q-10 34 -${size*0.9} 38 q-${size*0.9} -4 -${size*0.9} -38 Z" fill="${col}" opacity=".62"/>`;
+    else if(p==='flame') svg+=`<circle cx="${100-size*0.55}" cy="${cy+size*0.55}" r="9" fill="#FFB98A" opacity=".85"/><circle cx="${100-size*0.55}" cy="${cy+size*0.55}" r="4" fill="#FFF2B8"/>`;
+    else if(p==='swarm'||p==='cluster') svg+=[0,1,2].map(i=>`<circle cx="${100-size*0.8+i*11}" cy="${cy-size*0.72-i*7}" r="${6-i}" fill="${col}" opacity=".9"/>`).join('');
+    else if(p==='stone') svg+=`<rect x="${100-size*0.4}" y="${cy-size*0.95}" width="${size*0.8}" height="9" rx="4" fill="${col}" opacity=".8"/>`;
+    else if(p==='burrow') svg+=`<ellipse cx="100" cy="${cy+size*1.02}" rx="${size*0.85}" ry="7" fill="#C9A88A" opacity=".6"/>`;
+    else if(p==='nocturne') svg+=`<path d="M72 ${cy-size*0.6} a28 28 0 0 1 56 0 Z" fill="${col}" opacity=".75"/>`;
+    else if(p==='small') svg+=`<circle cx="${100-size*0.95}" cy="${cy+size*0.15}" r="12" fill="${col}" opacity=".8"/>`;
+    else if(p==='swarmPts') svg+='';
+    else svg+=`<circle cx="${100+size*0.72}" cy="${cy-size*0.55}" r="8" fill="${col}" opacity=".85"/>`;
+  });
+  // 스파클
+  for(let i=0;i<7;i++){
+    const a=(i/7)*Math.PI*2, r=size*1.12;
+    svg+=`<circle class="spark" style="animation-delay:${i*0.06}s" cx="${100+Math.cos(a)*r}" cy="${cy+Math.sin(a)*r}" r="${3.5-i*0.25}" fill="#FFF2B8"/>`;
+  }
+  $('blob').innerHTML=svg;
+}
+function sparkle(){ document.querySelectorAll('.spark').forEach((el,i)=>{ setTimeout(()=>el.classList.add('on'), i*55); }); }
+
+/* ══════════════════════════════════════════════════════════════
+   RENDER
+   ══════════════════════════════════════════════════════════════ */
+function renderDots(){
+  let h='';
+  EPOCHS.forEach((e,i)=>{
+    const cls=['dot', i<S.i?'done':'', e.mass?'mass':'', i===S.i?'now':''].filter(Boolean).join(' ');
+    h+=`<i class="${cls}"></i>`;
+  });
+  $('dots').innerHTML=h;
+}
+function renderStats(){
+  let h='';
+  K.forEach(k=>{
+    const v=Math.round(S.stats[k]);
+    const d=S.lastDelta[k];
+    const fl=d>0?'upflash':d<0?'downflash':'';
+    h+=`<div class="statrow"><label>${LABEL[k]}</label>
+      <span class="bar"><i class="${k} ${fl}" style="width:${v}%"></i></span>
+      <span class="num">${v}</span></div>`;
+  });
+  $('stats').innerHTML=h;
+  $('failBadge').innerHTML=`희미해진 계통 <b>${S.fail}</b>/${FAIL_MAX}`;
+}
+function renderTree(){
+  let h=`<div class="tnode ${S.i===0?'now':''}"><small>38억 년 전</small><b>원시종 말랑이</b></div>`;
+  S.log.forEach((e,i)=>{
+    const last=i===S.log.length-1;
+    h+=`<div class="tnode ${last?'now':''} ${e.fail?'fail':''}">
+      <small>${e.age}</small><b>${e.title}</b>${e.fail?' · 희미해짐':''}</div>`;
+  });
+  $('tree').innerHTML=h;
+}
+function renderParallel(){
+  const n=S.parallel.length;
+  $('parCount').textContent=n?`${n}`:'';
+  if(!n){$('parallel').innerHTML='<p class="empty">아직 갈라진 가지가 없습니다.</p>';return;}
+  $('parallel').innerHTML=S.parallel.slice().reverse().map(p=>
+    `<div class="par"><b>${p.name}</b>${p.desc}</div>`).join('');
+}
+function renderThreat(w,th){
+  const arr=K.map(k=>({k,w:w[k]})).sort((a,b)=>b.w-a.w);
+  $('threatbar').innerHTML='<b>이번 위기가 시험하는 축</b>'+arr.map(x=>
+    `<span class="threattag ${x.k===arr[0].k?'hi':''}">${LABEL[x.k]} ${Math.round(x.w*100)}%</span>`).join('')
+    +`<span class="threattag" style="opacity:.7">생존 기준 ${th}</span>`;
+}
+function renderMain(){
+  const ep=EPOCHS[S.i];
+  if(!ep){
+    // 모든 시대가 끝난 상태 — 마지막 방산이 끝나면 엔딩으로
+    if(S.phase==='play' && !S.pendingMass){ setTimeout(()=>{ if(!EPOCHS[S.i] && S.phase==='play') showEnding(); },140); }
+    return;
+  }
+  $('age').textContent=`${ep.age} · ${S.i+1} / ${EPOCHS.length}`;
+  $('epTitle').textContent=ep.title;
+  $('epText').textContent=ep.text;
+  $('crisisTag').textContent=ep.mass?`MASS EXTINCTION · ${ep.massName}`:'ENVIRONMENTAL PRESSURE';
+  $('crisisTitle').textContent=ep.crisis;
+  $('crisisDesc').textContent=ep.detail;
+  renderThreat(ep.w,ep.threshold);
+  $('choices').innerHTML=ep.choices.map((c,i)=>{
+    const d=K.filter(k=>c.deltas[k]).map(k=>{
+      const v=c.deltas[k];
+      return `<span class="delta ${v>0?'':'minus'}">${LABEL[k]} ${v>0?'+':''}${v}</span>`;
+    }).join('');
+    const fl=ep.flavors&&ep.flavors[i]?`<span style="display:block;font-size:11.5px;color:#A9B4C0;margin-top:5px">${ep.flavors[i]}</span>`:'';
+    return `<button class="choice" data-i="${i}">
+      <span class="cnum">${i+1}</span>
+      <span class="cmain"><strong>${c.title}</strong><span>${c.desc}</span>${fl}</span>
+      <span class="deltas">${d}</span></button>`;
+  }).join('');
+  document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>choose(+b.dataset.i));
+  renderBlob();
+  $('spLabel').textContent=speciesName();
+  $('spName').textContent=speciesName();
+}
+function renderAll(){renderDots();renderStats();renderTree();renderParallel();renderMain();}
+
+/* ══════════════════════════════════════════════════════════════
+   FLOW
+   ══════════════════════════════════════════════════════════════ */
+function applyDeltas(d){
+  const before={...S.stats};
+  S.lastDelta={};
+  K.forEach(k=>{
+    if(!d[k])return;
+    const nv=clamp(S.stats[k]+d[k],0,100);
+    S.lastDelta[k]=nv-before[k];
+    S.stats[k]=nv;
+  });
+}
+function decay(){
+  K.forEach(k=>S.stats[k]=Math.max(12,S.stats[k]-ATTRITION));
+}
+function toast(msg){
+  $('toast').textContent=msg;$('toast').classList.add('show');
+  clearTimeout(toast._t);toast._t=setTimeout(()=>$('toast').classList.remove('show'),1900);
+}
+function choose(i){
+  if(S.phase!=='play')return;
+  const ep=EPOCHS[S.i];
+  const c=ep.choices[i];
+  decay();
+  applyDeltas(c.deltas);
+  const v=score(S.stats,ep.w);
+  let survived=v>=ep.threshold;
+  let usedGrace=false;
+  if(!survived&&S.grace>0){survived=true;S.grace--;usedGrace=true;}
+  S.frag=c.frag||S.frag;
+  S.log.push({age:ep.age,title:c.title,fail:!survived});
+  S.lastDelta=S.lastDelta;
+  if(!survived)S.fail++;
+
+  if(S.fail>=FAIL_MAX){ S.extinctAt=S.i; renderAll(); showEnding(); return; }
+
+  // 실패 시 구원 오버레이 (에포크 진행 전에)
+  if(!survived){
+    S.i--;                       // 구원 선택 후 같은 에포크를 다시 표시
+    S.pendingMass = ep.mass;     // 이 에포크는 이미 대멸종 — 방산은 한 번만
+    showRescue();
+    return;
+  }
+
+  S.i++;
+  renderAll();
+  sparkle();
+
+  if(ep.mass){
+    S.phase='radiation';
+    setTimeout(()=>showRadiation(ep.id),260);
+  }else if(usedGrace){
+    toast('구원 유예가 위기를 넘겼습니다');
+  }
+}
+function showRescue(){
+  S.phase='rescue';
+  renderAll();
+  $('dialog').innerHTML=`
+    <h2>희미해졌습니다</h2>
+    <p class="sub">이번 위기를 넘지 못했습니다. 그래도 계통은 끝나지 않았습니다 —
+    무엇을 내주고 다음 세대로 갈까요? 구원은 <b>상속</b>입니다. 되찾는 게 아니라 갚는 것입니다.</p>
+    <div class="choices">${RESCUES.map((r,k)=>{
+      const d=K.filter(x=>r.deltas[x]).map(x=>{const v=r.deltas[x];return `<span class="delta ${v>0?'':'minus'}">${LABEL[x]} ${v>0?'+':''}${v}</span>`;}).join('');
+      return `<button class="choice" data-r="${k}">
+        <span class="cnum">${k+1}</span>
+        <span class="cmain"><strong>${r.name}</strong><span>${r.desc}</span></span>
+        <span class="deltas">${d}</span></button>`;
+    }).join('')}</div>
+    <div class="btnrow"><button class="btn skip tiny" id="skipRescue">아무것도 내주지 않고 버티기</button></div>`;
+  $('overlay').classList.add('show');
+  document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{
+    applyDeltas(healDeltas(RESCUES[+b.dataset.r].deltas,RESCUE_HEAL));
+    S.grace=RESCUE_GRACE;
+    closeOverlay();
+    toast('구원 유예 1회를 얻었습니다');
+    advanceAfterRescue();
+  });
+  $('skipRescue').onclick=()=>{
+    closeOverlay();
+    advanceAfterRescue();
+  };
+}
+/* 구원/버리기 선택 후 에포크를 실제로 통과시킨다 */
+function advanceAfterRescue(){
+  const wasMass = S.pendingMass;
+  S.pendingMass = false;
+  S.i++;
+  S.phase='play';
+  renderAll();
+  sparkle();
+  // 방산은 대멸종 에포크당 1회만 (실패 후 구원해도 중복 방지)
+  if(wasMass) setTimeout(()=>showRadiation(EPOCHS[S.i-1].id),240);
+}
+function closeOverlay(){$('overlay').classList.remove('show');$('dialog').innerHTML='';}
+function showRadiation(epId){
+  if(S.radDone===epId)return;   // 동일 대멸종 에포크의 방산은 1회만
+  S.radDone=epId;
+  const vars=RADIATIONS[epId]||[];
+  const shuffled=vars.slice().sort(()=>R()-0.5);
+  S.phase='radiation';
+  $('dialog').innerHTML=`
+    <h2>적응 방산</h2>
+    <p class="sub">대멸종이 빈자리를 남겼습니다. 이 계통은 <b>세 갈래로 갈라집니다</b>.
+    한 갈래가 후계자가 됩니다. 나머지 둘은 — 당신이 고르지 않은 평행세계로 갑니다.</p>
+    <div class="choices">${shuffled.map((v,i)=>{
+      const d=K.filter(x=>v.deltas[x]).map(x=>{const val=v.deltas[x];return `<span class="delta ${val>0?'':'minus'}">${LABEL[x]} ${val>0?'+':''}${val}</span>`;}).join('');
+      return `<button class="choice" data-v="${i}">
+        <span class="cnum">${i+1}</span>
+        <span class="cmain"><strong>${v.name}</strong><span>${v.desc}</span></span>
+        <span class="deltas">${d}</span></button>`;
+    }).join('')}</div>`;
+  $('overlay').classList.add('show');
+  document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{
+    const v=shuffled[+b.dataset.v];
+    applyDeltas(v.deltas);
+    S.parts.push(v.parts[0]);
+    shuffled.filter((_,k)=>k!==+b.dataset.v).forEach(o=>{
+      S.parallel.push({name:o.name,desc:o.future});
+    });
+    closeOverlay();S.phase='play';renderAll();sparkle();
+    toast(`${v.name} — 이 갈래가 후계자가 되었습니다`);
+    if(S.i>=EPOCHS.length) setTimeout(showEnding,300);
+  });
+}
+function showEnding(){
+  S.phase='ending';
+  const t=tierOf(S.fail), a=archeOf(S.stats), e=ENDINGS[t][a];
+  const avg=Math.round(K.reduce((s,k)=>s+S.stats[k],0)/4);
+  const avgAll=Math.round(K.reduce((s,k)=>s+INIT[k],0)/4);
+  $('layout').style.display='none';
+  document.querySelector('.progbar').style.display='none';
+  const tag=t==='perfect'?'LINEAGE SURVIVED · UNBROKEN':t==='scarred'?'LINEAGE SURVIVED · SCARRED':'LINEAGE ENDED · EXTINCTION REPORT';
+  $('dialog').innerHTML=`
+    <p class="endingtag">${tag}</p>
+    <h2 class="endingtitle">${e.title}</h2>
+    <p class="endingsum">${e.summary}</p>
+    <div class="saga">${e.saga}</div>
+    <div class="grid2">
+      <div class="gcell"><span>최종 종</span><b>${speciesName()}</b></div>
+      <div class="gcell"><span>도달 시대</span><b>${S.extinctAt!==null?S.extinctAt+1:Math.min(S.i,EPOCHS.length)} / ${EPOCHS.length}</b></div>
+      <div class="gcell"><span>지배 형질</span><b>${LABEL[a]} ${Math.round(S.stats[a])}</b></div>
+      <div class="gcell"><span>평균 형질</span><b>${avg}</b> <span style="display:inline">(시작 ${avgAll})</span></div>
+    </div>
+    ${S.parallel.length?`<h3 class="sectitle">평행세계 — 당신이 고르지 않은 ${S.parallel.length}개 갈래</h3>
+    ${S.parallel.map(p=>`<div class="par"><b>${p.name}</b>${p.desc}</div>`).join('')}`:''}
+    <h3 class="sectitle">38억 년 선택 기록</h3>
+    ${S.log.map(l=>`<div class="logline ${l.fail?'bad':''}"><time>${l.age}</time><span>${l.title}${l.fail?' · 희미해짐':''}</span></div>`).join('')}
+    <div class="btnrow">
+      <button class="btn" id="againBtn">다른 계통 시작</button>
+      <button class="btn alt" id="copyBtn">한 줄 서사 복사</button>
+    </div>`;
+  $('overlay').classList.add('show');
+  $('againBtn').onclick=restart;
+  $('copyBtn').onclick=async()=>{
+    try{await navigator.clipboard.writeText(`${speciesName()} — ${e.title}\n${e.saga}\nhttps://mallang.aikorea24.kr/?seed=${SEED}`);
+      toast('복사했습니다');}
+    catch(err){toast('복사하지 못했습니다 — 문장을 직접 선택해주세요');}
+  };
+}
+function restart(){
+  SEED=(Date.now()%2147483647);
+  R=rng(SEED);
+  S=newState();
+  $('layout').style.display='';
+  document.querySelector('.progbar').style.display='';
+  closeOverlay();
+  renderAll();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BOOT
+   ══════════════════════════════════════════════════════════════ */
+S=newState();
+renderAll();
+$('startBtn').onclick=()=>{
+  $('intro').classList.add('hide');
+  setTimeout(()=>{window.scrollTo({top:0,behavior:'smooth'});sparkle();},60);
+};
+document.addEventListener('keydown',e=>{
+  if(!$('intro').classList.contains('hide'))return;
+  if(S.phase!=='play')return;
+  const n=Number(e.key);
+  if(n>=1&&n<=3){const b=document.querySelector(`.choice[data-i="${n-1}"]`);if(b)b.click();}
+});
+</script>
+</body>
+</html>
