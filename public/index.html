@@ -118,7 +118,16 @@ button:focus-visible{outline:3px solid #7FB8E8;outline-offset:3px;border-radius:
 .speclabel{text-align:center;font-family:'Jua';font-size:14px;color:var(--ink2);margin-top:2px}
 
 /* ── 계통수 ── */
-.tree{position:relative;padding-left:14px;max-height:260px;overflow-y:auto}
+.tree{position:relative;padding-left:14px;max-height:260px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#9DB8AD #EDF2F0}
+.tree::-webkit-scrollbar{width:8px}
+.tree::-webkit-scrollbar-track{background:#EDF2F0;border-radius:4px}
+.tree::-webkit-scrollbar-thumb{background:#9DB8AD;border-radius:4px}
+.tree::-webkit-scrollbar-thumb:hover{background:#7A9A8E}
+#parallel{max-height:260px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#9DB8AD #EDF2F0}
+#parallel::-webkit-scrollbar{width:8px}
+#parallel::-webkit-scrollbar-track{background:#EDF2F0;border-radius:4px}
+#parallel::-webkit-scrollbar-thumb{background:#9DB8AD;border-radius:4px}
+#parallel::-webkit-scrollbar-thumb:hover{background:#7A9A8E}
 .tree::before{content:'';position:absolute;left:5px;top:10px;bottom:10px;width:2px;background:var(--line);border-radius:2px}
 .tnode{position:relative;padding:0 0 12px 16px}
 .tnode::before{content:'';position:absolute;left:-13px;top:5px;width:9px;height:9px;border-radius:50%;
@@ -290,7 +299,7 @@ const EPOCHS=[
     text: '뜨거운 바다의 유기 분자 사이에서 우연히 자신을 복제하는 막 하나가 생겼습니다. 아직 눈도, 입도, 이름도 없습니다.',
     crisis: '열수구의 급격한 온도 변화',
     detail: '영양분은 풍부하지만 수온과 산도가 수시로 뒤집힙니다.',
-    w: { might: 0.38, agile: 0.32, vital: 0.24, wise: 0.06 }, threshold: 37,
+    w: { might: 0.30, agile: 0.32, vital: 0.24, wise: 0.14 }, threshold: 37,
     choices: [
       { title: '두꺼운 막', desc: '외부 충격을 견디는 대신 물질 교환이 느려집니다.', deltas: { might: 16, agile: -4, vital: -6, wise: 2 }, frag: '갑', flavors: ['단단한 바깥이 곧 살아남음입니다.', '흘러내림보다 붙어 있음입니다.'] },
       { title: '느슨한 막', desc: '환경 변화를 빠르게 받아들이지만 손상에 취약합니다.', deltas: { might: -10, agile: 15, vital: 6, wise: 3 }, frag: '물', flavors: ['변화에 빠른 것은 살아남는 길입니다.', '흐름에 몸을 맡깁니다.'] },
@@ -303,7 +312,7 @@ const EPOCHS=[
     text: '광합성 생물이 바다를 산소로 채웠습니다. 기존 생명 대부분에게 산소는 세포를 파괴하는 맹독입니다.',
     crisis: '대산소 사건 — 대산화 오염',
     detail: '산소를 피하거나, 막아내거나, 에너지로 바꿔야 합니다. 이 선택이 이후 20억 년의 지배를 결정합니다.',
-    w: { might: 0.22, agile: 0.30, vital: 0.36, wise: 0.12 }, threshold: 37,
+    w: { might: 0.22, agile: 0.30, vital: 0.30, wise: 0.18 }, threshold: 37,
     choices: [
       { title: '산소 차단층', desc: '독성을 버티지만 에너지 획득량은 크게 늘지 않습니다.', deltas: { might: 14, agile: -3, vital: -6, wise: 4 }, frag: '막' },
       { title: '산소 호흡', desc: '위험한 산소를 막대한 에너지로 바꿉니다. 이 길은 살아남지만 경쟁자가 폭발합니다.', deltas: { might: -11, agile: 4, vital: 24, wise: 10 }, frag: '불' },
@@ -342,7 +351,7 @@ const EPOCHS=[
     text: '행성 대부분이 얼음으로 덮였습니다. 빛은 희미하고 먹이는 드물며, 계절은 수백만 년처럼 깁니다.',
     crisis: '눈덩이 지구 — 전 지구의 평균 기온 급락',
     detail: '오래 버티는 효율과 변화에 대응하는 힘이 동시에 시험받습니다. 둘 다 없으면 멸종합니다.',
-    w: { might: 0.36, agile: 0.28, vital: 0.26, wise: 0.10 }, threshold: 47,
+    w: { might: 0.30, agile: 0.28, vital: 0.26, wise: 0.16 }, threshold: 47,
     choices: [
       { title: '휴면 포자', desc: '활동을 멈추고 수천 년을 버티지만 진화 속도가 느려집니다.', deltas: { might: 18, agile: -8, vital: 10, wise: -5 }, frag: '잠' },
       { title: '공생 군체', desc: '서로 다른 세포가 자원을 나눠 써 효율이 배가됩니다. 다만 군집이 크면 배신에 취약합니다.', deltas: { might: -6, agile: 10, vital: 12, wise: 14 }, frag: '군' },
@@ -370,7 +379,7 @@ const EPOCHS=[
     detail: '중력을 이기려면 물기를 잃어야 합니다. 육지 정착은 대개 첫 번째 시도에서 실패했습니다.',
     w: { might: 0.28, agile: 0.36, vital: 0.18, wise: 0.18 }, threshold: 52,
     choices: [
-      { title: '원시 폐', desc: '공기에서 산소를 얻어 산소爭奪에서 자유로워집니다. 다만 수중 호흡 효율이 떨어집니다.', deltas: { might: -3, agile: 14, vital: 10, wise: 12 }, frag: '숨' },
+      { title: '원시 폐', desc: '공기에서 산소를 얻어 산소 쟁탈전에서 자유로워집니다. 다만 수중 호흡 효율이 떨어집니다.', deltas: { might: -3, agile: 14, vital: 10, wise: 12 }, frag: '숨' },
       { title: '튼튼한 지느러미', desc: '얕은 물과 진흙을 건너지만 빠른 유영을 잃습니다.', deltas: { might: 10, agile: 9, vital: -8, wise: 8 }, frag: '지' },
       { title: '심해 정착', desc: '변화를 피하고 안정성을 택하지만 영역이 좁아집니다.', deltas: { might: 12, agile: -13, vital: 6, wise: -2 }, frag: '해' },
     ],
@@ -407,7 +416,7 @@ const EPOCHS=[
     text: '충돌 뒤 먼지가 햇빛을 가립니다. 거대한 몸과 정교한 생태 관계가 한순간에 부채가 됩니다.',
     crisis: 'K-Pg 충돌 — 먹이망 단절',
     detail: '먹이를 비축해 충격을 수년을 견딜 전략이 필요합니다. 이 한 번이 이후 지구의 지배종을 결정합니다.',
-    w: { might: 0.30, agile: 0.34, vital: 0.28, wise: 0.08 }, threshold: 57,
+    w: { might: 0.30, agile: 0.26, vital: 0.28, wise: 0.16 }, threshold: 57,
     choices: [
       { title: '야행성', desc: '어둠을 활동 시간으로 삼지만 시각과 체온 유지 비용이 늘어납니다.', deltas: { might: 2, agile: 14, vital: -8, wise: 9 }, frag: '야' },
       { title: '씨앗 저장', desc: '먹이를 비축해 충격을 버티지만 서식지 이동이 느려집니다.', deltas: { might: 13, agile: -6, vital: 10, wise: 1 }, frag: '저' },
@@ -417,9 +426,9 @@ const EPOCHS=[
   {
     id: 11, age: '3000만 년 전', mark: 'MAMMAL · 30 MYA', mass: false,
     title: '작은 것들의 밤이 지나갔다',
-    text: '거대한 먹이망이 무너진 빈자리에, 작고 numerous한 것들이 밤을 피해 번성하기 시작합니다.',
+    text: '거대한 먹이망이 무너진 빈자리에, 작고 수많은 것들이 밤을 피해 번성하기 시작합니다.',
     crisis: '빈 자리의 시대 — 종 분화 폭발',
-    detail: '큰 몸을 잃은 대신,社群과 학습이 새로운 무기로 올라섭니다.',
+    detail: '큰 몸을 잃은 대신,무리와 학습이 새로운 무기로 올라섭니다.',
     w: { might: 0.22, agile: 0.26, vital: 0.24, wise: 0.28 }, threshold: 62,
     choices: [
       { title: '무리 생활', desc: '함께 행동하며 서로의 몸을 아끼는 법을 배웁니다. 대신 무리의 다툼이 배를 채웁니다.', deltas: { might: -6, agile: 10, vital: 4, wise: 18 }, frag: '무리' },
@@ -476,7 +485,7 @@ const RADIATIONS={
   5: [
     { name: '휴면 장기형', desc: '수천 년을 잠자는 포자를 계약으로 무장했습니다.', deltas: { might: 18, vital: 10, wise: -5 }, parts: ['cloak'], future: '얼음이 녹을 때마다 몇 개체만이 깨어나 무언가를 남겼을 것입니다. 느리지만 한 번도 끊기진 않았습니다.' },
     { name: '공생 군체형', desc: '여러 종류가 함께 사는 연합 군체를 만들었습니다.', deltas: { agile: 10, wise: 16 }, parts: ['cluster'], future: '군체형 그 계통은 배신 없는 사회를 유지했는지, 아니면 끝내 제국을 세웠는지 알 수 없습니다. 스무 개체가 하나가 되었습니다.' },
-    { name: '빙하 유영형', desc: '얼지 않은 틈을 헤치며 살아남았습니다.', deltas: { agile: 19, vital: -9 }, parts: ['fin'], future: '항상 움직인 그 계통은 눈덩이가 걷힌 뒤 자리를 옮기지 못했을 것입니다. 첫 만의的开된 바다에서 멸종했습니다.' },
+    { name: '빙하 유영형', desc: '얼지 않은 틈을 헤치며 살아남았습니다.', deltas: { agile: 19, vital: -9 }, parts: ['fin'], future: '항상 움직인 그 계통은 눈덩이가 걷힌 뒤 자리를 옮기지 못했을 것입니다. 처음 열린 바다에서 멸종했습니다.' },
   ],
   8: [
     { name: '왜소 생존형', desc: '몸을 줄여 작은 틈새와 적은 먹이로 버텼습니다.', deltas: { vital: 20, agile: 10, might: -8 }, parts: ['small'], future: '작아진 그 계통은 대멸종을 온몸으로 버티고, 위대한 회복기에 값을 치를 것입니다. 작음이 진짜 무기였습니다.' },
@@ -651,6 +660,7 @@ function renderStats(){
   });
   $('stats').innerHTML=h;
   $('failBadge').innerHTML=`희미해진 계통 <b>${S.fail}</b>/${FAIL_MAX}`;
+  $('failBadge').title='위기를 넘기지 못하면 계통이 희미해집니다. 3번 희미해지면 멸종하고 새로운 종으로 분기합니다.';
 }
 function renderTree(){
   let h=`<div class="tnode ${S.i===0?'now':''}"><small>38억 년 전</small><b>원시종 말랑이</b></div>`;
@@ -754,6 +764,9 @@ function choose(i){
   S.i++;
   renderAll();
   sparkle();
+  // 위기 판정 결과 피드백 (2026-10-17 폴리시: 선택의 결과를 체감할 수 있게)
+  const margin=Math.round(v-ep.threshold);
+  toast(`위기 판정 ${Math.round(v)} / ${ep.threshold} — ${margin>=10?'여유롭게 생존':margin>=0?'아슬아슬하게 생존':'생존'} (${margin>=0?'+':''}${margin})`);
 
   if(ep.mass){
     S.phase='radiation';
